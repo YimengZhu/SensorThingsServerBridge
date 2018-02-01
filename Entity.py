@@ -6,7 +6,7 @@ class Entity:
 		#dictFilter = dict((k, v) for k, v in self.__dict__.iteritems() if v is not None)
 		#print(dictFilter)
 		#return json.dumps(dictFilter)
-		return json.dumps(self, default = lambda o:dict((k,v) for k,v in o.__dict__.iteritems() if v is not None))
+		return json.dumps(self, default = lambda o:dict((k,v) for k,v in o.__dict__.items() if v is not None))
 
 
 class Thing(Entity):
