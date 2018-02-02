@@ -11,46 +11,20 @@ import datetime
 import time
 
 
-# get id from the server response
-def get_id_from_response(res):
-	lastPart = res.split('/')[-1]
-	idInResponse = int(re.search(r'\d+', lastPart).group())
-	return idInResponse
-
-# get current 
-
-# create an entity via the REST API
-def create_via_rest(data, urltail, server_path = 'localhost:8080/SensorThingsService'):
-	url = 'http://' + server_path + '/v1.0/' + urltail
-	print(url)
-	payload = data.encode('ascii')
-	req = Request(url, payload, {'Content-Type': 'application/json'})
-	f = urlopen(req)
-	responseHeader = f.getheader('location')
-	f.close()
-	return responseHeader
-
-# Create an Observation via MQTT broker
-def create_via_mqtt(observation):
-	publish.single('v1.0/Observations', observation.jsonSerialize())
-
-
-
 '''
-If run this script, it will periodlly post entities other than observation via REST API and 
-Observation via MQTT
+If run this script, it will periodlly publish all entities via MQTT
 '''
 if __name__ == '__main__':
 	
 	counter = 0
 
-	location_id = None
-	thing_id = None
-	sensor_id = None
-	observedProperty_id = None
-	datastream_id = None
-	foi_id = None
-	observation_id = None
+	location_id = 2
+	thing_id = 2
+	sensor_id = 2
+	observedProperty_id = 2
+	datastream_id = 2
+	foi_id = 2
+	observation_id = 2
 
 	# loop
 	while True:
@@ -58,18 +32,15 @@ if __name__ == '__main__':
 		# post a location
 		location = Location('location ' + str(counter) , 'location ' + str(counter) , 
 			Feature(geometry = Point((counter, counter))))
-		location_res = create_via_rest(location.jsonSerialize(), 'Locations')
-		location_id = get_id_from_response(location_res)
+		publish.single('v1.0/Locations', location.jsonSerialize()) 
 
 		# post a thing 
 		thing = Thing('thing ' + str(counter), 'thing ' + str(counter))
-		thing_res = create_via_rest(thing.jsonSerialize(), 'Things')
-		thing_id = get_id_from_response(thing_res)
+		publish.single('v1.0/Things', thing.jsonSerialize()) 
 
 		# post a sensor
 		sensor = Sensor("sensor " + str(counter) , "sensor " + str(counter))
-		sensor_res = create_via_rest(sensor.jsonSerialize(), 'Sensors')
-		sensor_id = get_id_from_response(sensor_res)
+		publish.single('v1.0/Sensors', sensor.jsonSerialize()) 
 
 		# post a Observed Property
 		observedProperty =  {
@@ -77,8 +48,7 @@ if __name__ == '__main__':
 			"definition" : 'observedProperty ' + str(counter),
 			"description" : 'observedProperty ' + str(counter),
 		}
-		observedProperty_res = create_via_rest(json.dumps(observedProperty), 'ObservedProperties')
-		observedProperty_id = get_id_from_response(observedProperty_res)
+		publish.single('v1.0/ObservedProperties', json.dumps(observedProperty)) 
 
 		# post a datastream
 		datastream =  {
@@ -93,8 +63,8 @@ if __name__ == '__main__':
 			"Sensor" : { "@iot.id" : sensor_id},
 			"ObservedProperty" : {"@iot.id" : observedProperty_id}
 		}
-		datastream_res = create_via_rest(json.dumps(datastream), 'Datastreams')
-		datastream_id = get_id_from_response(datastream_res)
+		publish.single('v1.0/Datastreams', json.dumps(datastream)) 
+
 
 		# post a foi
 		foiFeature = {
@@ -105,8 +75,8 @@ if __name__ == '__main__':
 			}
 		}
 		foi = FeaturesOfInterest('foi ' + str(counter), 'foi ' + str(counter), 'application.geo+json', foiFeature)
-		foi_res = create_via_rest(foi.jsonSerialize(), 'FeaturesOfInterest')
-		foi_id = get_id_from_response(foi_res)
+		publish.single('v1.0/FeaturesOfInterests', foi.jsonSerialize()) 
+
 
 		# publish a observation
 		timestamp = datetime.datetime.now().isoformat()
